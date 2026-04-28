@@ -1,59 +1,83 @@
 <?php
 /**
  * Admin Page Partial: SnapAI Generator UI
- * Save this file as: admin/partials/snap-ai-admin-display.php
+ * Path: admin/partials/snap-ai-admin-display.php
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit; // Exit if accessed directly
 }
 ?>
 
 <div class="wrap">
-	<h1 style="margin-bottom: 20px;">SnapAI - Free Image Generator</h1>
-	<p>Describe the image you want, choose a style, and let AI generate it for you.</p>
+    <h1 class="wp-heading-inline">SnapAI Image Generator</h1>
+    <hr class="wp-header-end">
 
-	<div style="background: #fff; border: 1px solid #ccd0d4; padding: 20px; max-width: 600px; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
-		
-		<div style="margin-bottom: 15px;">
-			<label style="display: block; font-weight: bold; margin-bottom: 5px;">Describe Your Image</label>
-			<textarea id="snap-ai-prompt" style="width: 100%; min-height: 100px;" placeholder="e.g. A futuristic city with flying cars, sunset, cinematic lighting"></textarea>
-		</div>
+    <div id="snapai-main-container" style="margin-top: 20px; max-width: 800px;">
+        
+        <div class="card" style="padding: 20px; margin-bottom: 20px;">
+            <h2>Create Your Image</h2>
+            <p>Enter a detailed prompt below. Choose your preferred style and aspect ratio to generate a high-quality AI image.</p>
+        </div>
 
-		<div style="display: flex; gap: 20px; margin-bottom: 20px;">
-			<div style="flex: 1;">
-				<label style="display: block; font-weight: bold; margin-bottom: 5px;">Aspect Ratio</label>
-				<select id="snap-ai-aspect" style="width: 100%;">
-					<option value="1:1">Square (1:1)</option>
-					<option value="16:9">Landscape (16:9)</option>
-					<option value="9:16">Portrait (9:16)</option>
-				</select>
-			</div>
-			<div style="flex: 1;">
-				<label style="display: block; font-weight: bold; margin-bottom: 5px;">Style</label>
-				<select id="snap-ai-style" style="width: 100%;">
-					<option value="realistic">Realistic</option>
-					<option value="3d-render">3D Render</option>
-					<option value="anime">Anime</option>
-					<option value="cyberpunk">Cyberpunk</option>
-				</select>
-			</div>
-		</div>
+        <div class="card" style="padding: 20px;">
+            <form id="snap-ai-form">
+                <table class="form-table" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row">
+                                <label for="snap-ai-prompt">Image Description</label>
+                            </th>
+                            <td>
+                                <textarea id="snap-ai-prompt" name="prompt" rows="4" class="large-text" placeholder="e.g. A futuristic robot drinking coffee in a neon-lit cafe, cinematic lighting, 8k..."></textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="snap-ai-aspect">Aspect Ratio</label>
+                            </th>
+                            <td>
+                                <select id="snap-ai-aspect" name="aspect">
+                                    <option value="1:1">Square (1:1)</option>
+                                    <option value="16:9">Landscape (16:9)</option>
+                                    <option value="9:16">Portrait (9:16)</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="snap-ai-style">Art Style</label>
+                            </th>
+                            <td>
+                                <select id="snap-ai-style" name="style">
+                                    <option value="realistic">Realistic Photography</option>
+                                    <option value="anime">Anime / Manga</option>
+                                    <option value="cyberpunk">Cyberpunk</option>
+                                    <option value="3d-render">3D Render</option>
+                                    <option value="oil-painting">Oil Painting</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
 
-		<button type="button" id="snap-ai-generate-btn" class="button button-primary button-large">
-			Generate Magic Image
-		</button>
+                <p class="submit">
+                    <button type="button" id="snap-ai-generate-btn" class="button button-primary button-large">Generate Image</button>
+                    <span id="snap-ai-loader" style="display: none; margin-left: 10px; vertical-align: middle;">
+                        <span class="spinner is-active" style="float: none;"></span>
+                        Generating...
+                    </span>
+                </p>
+            </form>
+        </div>
 
-		<span id="snap-ai-loader" style="display: none; margin-left: 10px; vertical-align: middle;">
-			<span class="spinner is-active" style="float: none;"></span> Generating...
-		</span>
-	</div>
+        <div id="snap-ai-preview-container" class="card" style="display: none; margin-top: 30px; padding: 20px; text-align: center;">
+            <h3>Generated Preview</h3>
+            <div id="snap-ai-image-wrapper" style="margin-bottom: 20px;">
+                <img id="snap-ai-result-img" src="" style="max-width: 100%; height: auto; border: 1px solid #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            </div>
+            <button type="button" id="snap-ai-save-media" class="button button-secondary">Save to Media Library</button>
+        </div>
 
-	<div id="snap-ai-preview-area" style="display: none; margin-top: 30px; max-width: 600px; padding: 20px; background: #fff; border: 1px solid #ccd0d4; text-align: center;">
-		<h3>Preview</h3>
-		<img id="snap-ai-generated-image" src="" style="max-width: 100%; height: auto; border-radius: 4px;">
-		<div style="margin-top: 15px;">
-			<button id="snap-ai-save-btn" class="button button-primary">Save to Media Library</button>
-		</div>
-	</div>
+    </div>
 </div>
