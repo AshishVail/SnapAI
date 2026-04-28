@@ -1,7 +1,7 @@
 <?php
 /**
- * Admin Class for SnapAI
- * Path: admin/class-snap-ai-admin.php
+ * Admin Logic for SnapAI
+ * File Path: admin/class-snap-ai-admin.php
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,14 +10,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Snap_AI_Admin {
 
-    /**
-     * Plugin properties
-     */
     private $plugin_name;
     private $version;
 
     /**
-     * Constructor: Initializes name and version
+     * Constructor
      */
     public function __construct( $plugin_name, $version ) {
         $this->plugin_name = $plugin_name;
@@ -25,80 +22,52 @@ class Snap_AI_Admin {
     }
 
     /**
-     * Add "SnapAI" menu under the Media section
+     * 1. Register the Dashboard Menu
+     * This adds "SnapAI Generator" under the 'Media' menu.
      */
     public function add_plugin_admin_menu() {
         add_media_page(
-            'SnapAI Generator',    // Page Title
-            'SnapAI',              // Menu Title
-            'upload_files',        // Capability
-            'snap-ai-generator',   // Menu Slug
-            array( $this, 'display_plugin_admin_page' ) // Callback function
+            'SnapAI Image Generator', // Page Title
+            'SnapAI Generator',       // Menu Title
+            'upload_files',           // Capability (Admins/Authors)
+            'snap-ai-generator',      // Menu Slug
+            array( $this, 'display_plugin_admin_page' ) // Function to show UI
         );
     }
 
     /**
-     * Render the Admin Page UI
+     * 2. Load the UI from Partial File
      */
     public function display_plugin_admin_page() {
-        // Ensure only authorized users see this
+        // Security check for permissions
         if ( ! current_user_can( 'upload_files' ) ) {
-            wp_die( 'You do not have permission to access this page.' );
+            wp_die( 'You do not have sufficient permissions to access this page.' );
         }
 
-        // Include the UI partial file
-        $partial_path = plugin_dir_path( __FILE__ ) . 'partials/snap-ai-admin-display.php';
+        // Define path to the UI file
+        $ui_partial = plugin_dir_path( __FILE__ ) . 'partials/snap-ai-admin-display.php';
 
-        if ( file_exists( $partial_path ) ) {
-            include_once $partial_path;
+        if ( file_exists( $ui_partial ) ) {
+            include_once $ui_partial;
         } else {
-            echo '<div class="wrap"><h1>SnapAI</h1><p>Error: UI file missing in admin/partials/ folder.</p></div>';
+            // Fallback if file is missing
+            echo '<div class="wrap"><h1>SnapAI</h1><p>Error: UI file not found in admin/partials/ folder.</p></div>';
         }
     }
 
     /**
-     * Enqueue CSS styles for the admin page
+     * 3. (Optional) Enqueue CSS/JS
+     * Only loaded on our plugin page
      */
-    public function enqueue_styles( $hook ) {
-        // Load only on our plugin page
+    public function enqueue_assets( $hook ) {
         if ( 'media_page_snap-ai-generator' !== $hook ) {
             return;
         }
 
-        wp_enqueue_style(
-            'snap-ai-admin-css',
-            plugin_dir_url( __FILE__ ) . 'css/snap-ai-admin.css',
-            array(),
-            $this->version,
-            'all'
-        );
-    }
-
-    /**
-     * Enqueue JS scripts and pass Ajax data
-     */
-    public function enqueue_scripts( $hook ) {
-        // Load only on our plugin page
-        if ( 'media_page_snap-ai-generator' !== $hook ) {
-            return;
-        }
-
-        wp_enqueue_script(
-            'snap-ai-admin-js',
-            plugin_dir_url( __FILE__ ) . 'js/snap-ai-admin.js',
-            array( 'jquery' ),
-            $this->version,
-            true
-        );
-
-        // Security Nonce and Ajax URL for JavaScript
-        wp_localize_script(
-            'snap-ai-admin-js',
-            'SnapAIAjax',
-            array(
-                'ajax_url' => admin_url( 'admin-ajax.php' ),
-                'nonce'    => wp_create_nonce( 'snap_ai_nonce' )
-            )
-        );
+        // Enqueue CSS
+        wp_enqueue_style( 'snap-ai-admin-css', plugin_dir_url( __FILE__ ) . 'css/snap-ai-admin.css', array(), $this->version );
+        
+        // Enqueue JS
+        wp_enqueue_script( 'snap-ai-admin-js', plugin_dir_url( __FILE__ ) . 'js/snap-ai-admin.js', array( 'jquery' ), $this->version, true );
     }
 }
