@@ -1,125 +1,108 @@
 ```php
 <?php
 /**
- * Registers and executes all hooks for the SnapAI plugin.
+ * Admin functionality for the SnapAI plugin.
  *
  * @package    SnapAI
- * @subpackage Includes
+ * @subpackage Admin
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly.
-}
+defined( 'ABSPATH' ) || exit;
 
-/**
- * Class Snap_AI_Loader
- *
- * Orchestrates WordPress actions and filters for SnapAI plugin.
- */
-class Snap_AI_Loader {
+class Snap_AI_Admin {
 
 	/**
-	 * The array of actions to be registered with WordPress.
+	 * The plugin name.
 	 *
-	 * @since 1.0.0
-	 * @var array
+	 * @var string
 	 */
-	protected $actions = array();
+	private $plugin_name;
 
 	/**
-	 * The array of filters to be registered with WordPress.
+	 * The plugin version.
 	 *
-	 * @since 1.0.0
-	 * @var array
+	 * @var string
 	 */
-	protected $filters = array();
+	private $version;
 
 	/**
 	 * Constructor.
 	 *
-	 * @since 1.0.0
+	 * @param string $plugin_name The plugin name.
+	 * @param string $version     The plugin version.
 	 */
-	public function __construct() {
-		// No initialization required.
+	public function __construct( $plugin_name, $version ) {
+		$this->plugin_name = $plugin_name;
+		$this->version     = $version;
 	}
 
 	/**
-	 * Add a new action to the collection to be registered with WordPress.
+	 * Enqueue the admin styles for the SnapAI plugin.
 	 *
-	 * @since 1.0.0
-	 * @param string   $hook         The name of the WordPress action.
-	 * @param object   $component    The instance of the object on which the callback is fired.
-	 * @param string   $callback     The callback method name on the component.
-	 * @param int      $priority     The priority at which to execute the callback.
-	 * @param int      $accepted_args The number of accepted arguments.
-	 * @return void
+	 * @param string $hook The current admin page.
 	 */
-	public function add_action( $hook, $component, $callback, $priority = 10, $accepted_args = 1 ) {
-		$this->add( $this->actions, $hook, $component, $callback, $priority, $accepted_args );
+	public function enqueue_styles( $hook ) {
+		wp_register_style(
+			'snapai-admin-style',
+			SNAPAI_URL . 'assets/css/snap-ai-admin.css',
+			array(),
+			$this->version
+		);
+		wp_enqueue_style( 'snapai-admin-style' );
 	}
 
 	/**
-	 * Add a new filter to the collection to be registered with WordPress.
+	 * Enqueue the admin scripts for the SnapAI plugin.
 	 *
-	 * @since 1.0.0
-	 * @param string   $hook         The name of the WordPress filter.
-	 * @param object   $component    The instance of the object on which the callback is fired.
-	 * @param string   $callback     The callback method name on the component.
-	 * @param int      $priority     The priority at which to execute the callback.
-	 * @param int      $accepted_args The number of accepted arguments.
-	 * @return void
+	 * @param string $hook The current admin page.
 	 */
-	public function add_filter( $hook, $component, $callback, $priority = 10, $accepted_args = 1 ) {
-		$this->add( $this->filters, $hook, $component, $callback, $priority, $accepted_args );
-	}
+	public function enqueue_scripts( $hook ) {
+		wp_register_script(
+			'snapai-admin-script',
+			SNAPAI_URL . 'assets/js/snap-ai-admin.js',
+			array( 'jquery' ),
+			$this->version,
+			true
+		);
+		wp_enqueue_script( 'snapai-admin-script' );
 
-	/**
-	 * Add a hook (action or filter) to the appropriate collection.
-	 *
-	 * @since 1.0.0
-	 * @param array  &$hooks       The collection of hooks (actions/filters).
-	 * @param string $hook         The name of the WordPress hook.
-	 * @param object $component    The instance of the object on which the callback is fired.
-	 * @param string $callback     The callback method name.
-	 * @param int    $priority     Priority (default: 10).
-	 * @param int    $accepted_args Number of accepted args (default: 1).
-	 * @return void
-	 */
-	private function add( &$hooks, $hook, $component, $callback, $priority, $accepted_args ) {
-		$hooks[] = array(
-			'hook'          => $hook,
-			'component'     => $component,
-			'callback'      => $callback,
-			'priority'      => $priority,
-			'accepted_args' => $accepted_args,
+		// Localize variables for AJAX and translatable strings if needed.
+		wp_localize_script(
+			'snapai-admin-script',
+			'SnapAIAdmin',
+			array(
+				'ajax_url' => admin_url( 'admin-ajax.php' ),
+				'nonce'    => wp_create_nonce( 'snapai_admin_action' ),
+			)
 		);
 	}
 
 	/**
-	 * Register the actions and filters with WordPress.
-	 *
-	 * @since 1.0.0
-	 * @return void
+	 * Add SnapAI Generator admin menu under the Media menu.
 	 */
-	public function run() {
-		foreach ( $this->filters as $hook ) {
-			add_filter(
-				$hook['hook'],
-				array( $hook['component'], $hook['callback'] ),
-				$hook['priority'],
-				$hook['accepted_args']
-			);
-		}
+	public function add_plugin_admin_menu() {
+		add_media_page(
+			__( 'SnapAI Generator', 'snap-ai' ),
+			__( 'SnapAI Generator', 'snap-ai' ),
+			'upload_files',
+			'snap-ai-generator',
+			array( $this, 'display_plugin_admin_page' )
+		);
+	}
 
-		foreach ( $this->actions as $hook ) {
-			add_action(
-				$hook['hook'],
-				array( $hook['component'], $hook['callback'] ),
-				$hook['priority'],
-				$hook['accepted_args']
-			);
+	/**
+	 * Display the SnapAI admin page.
+	 */
+	public function display_plugin_admin_page() {
+		$partial = SNAPAI_DIR_PATH . 'admin/partials/snap-ai-admin-display.php';
+		if ( file_exists( $partial ) ) {
+			include $partial;
+		} else {
+			echo '<div class="notice notice-error"><p>' .
+				esc_html__( 'SnapAI admin UI not found.', 'snap-ai' ) .
+			'</p></div>';
 		}
 	}
 }
 ```
-This class should be saved as `includes/class-snap-ai-loader.php`, is strict OOP, secure, WordPress standards–compliant, and fully documented.
+This file is **fully compatible with PHP 7.0+,** avoids all modern type/nullable features, and implements the exact methods needed for stable SnapAI admin integration.
