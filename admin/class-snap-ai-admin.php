@@ -1,73 +1,40 @@
 <?php
-/**
- * Admin Logic for SnapAI
- * File Path: admin/class-snap-ai-admin.php
- */
-
-if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Security check
-}
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 class Snap_AI_Admin {
-
     private $plugin_name;
     private $version;
 
-    /**
-     * Constructor
-     */
     public function __construct( $plugin_name, $version ) {
         $this->plugin_name = $plugin_name;
         $this->version     = $version;
     }
 
-    /**
-     * 1. Register the Dashboard Menu
-     * This adds "SnapAI Generator" under the 'Media' menu.
-     */
     public function add_plugin_admin_menu() {
+        // यह फंक्शन Media मेनू के अंदर 'SnapAI Generator' नाम का सब-मेनू बनाएगा
         add_media_page(
-            'SnapAI Image Generator', // Page Title
-            'SnapAI Generator',       // Menu Title
-            'upload_files',           // Capability (Admins/Authors)
-            'snap-ai-generator',      // Menu Slug
-            array( $this, 'display_plugin_admin_page' ) // Function to show UI
+            'SnapAI Generator',    // ब्राउज़र टैब टाइटल
+            'SnapAI Generator',    // मेनू में दिखने वाला नाम
+            'upload_files',        // ज़रूरी परमिशन
+            'snap-ai-generator',   // URL स्लग
+            array( $this, 'display_plugin_admin_page' )
         );
     }
 
-    /**
-     * 2. Load the UI from Partial File
-     */
     public function display_plugin_admin_page() {
-        // Security check for permissions
-        if ( ! current_user_can( 'upload_files' ) ) {
-            wp_die( 'You do not have sufficient permissions to access this page.' );
-        }
-
-        // Define path to the UI file
-        $ui_partial = plugin_dir_path( __FILE__ ) . 'partials/snap-ai-admin-display.php';
-
-        if ( file_exists( $ui_partial ) ) {
-            include_once $ui_partial;
-        } else {
-            // Fallback if file is missing
-            echo '<div class="wrap"><h1>SnapAI</h1><p>Error: UI file not found in admin/partials/ folder.</p></div>';
-        }
-    }
-
-    /**
-     * 3. (Optional) Enqueue CSS/JS
-     * Only loaded on our plugin page
-     */
-    public function enqueue_assets( $hook ) {
-        if ( 'media_page_snap-ai-generator' !== $hook ) {
-            return;
-        }
-
-        // Enqueue CSS
-        wp_enqueue_style( 'snap-ai-admin-css', plugin_dir_url( __FILE__ ) . 'css/snap-ai-admin.css', array(), $this->version );
-        
-        // Enqueue JS
-        wp_enqueue_script( 'snap-ai-admin-js', plugin_dir_url( __FILE__ ) . 'js/snap-ai-admin.js', array( 'jquery' ), $this->version, true );
+        ?>
+        <div class="wrap">
+            <h1>SnapAI Image Generator</h1>
+            <p>Welcome to your AI Dashboard!</p>
+            <?php 
+            $partial = plugin_dir_path( __FILE__ ) . 'partials/snap-ai-admin-display.php';
+            if ( file_exists( $partial ) ) {
+                include_once $partial;
+            } else {
+                echo "UI Partial file not found.";
+            }
+            ?>
+        </div>
+        <?php
     }
 }
