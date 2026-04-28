@@ -1,42 +1,64 @@
 <?php
 /**
  * Plugin Name:       SnapAI
- * Description:       A lightweight test for SnapAI Image Generator.
+ * Description:       Generate AI images for your site using Pollinations.ai (Free).
  * Version:           1.0.0
  * Author:            Ashish
  * Text Domain:       snap-ai
  */
 
-// Exit if accessed directly for security
+// 1. Security: Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-/**
- * Step 1: Create the Admin Menu
- * This adds a link under the 'Media' section in WordPress.
- */
-function snap_ai_setup_menu() {
-    add_media_page(
-        'SnapAI Generator',      // Page Title
-        'SnapAI',                // Menu Title
-        'manage_options',        // Capability (Only Admins)
-        'snap-ai-test',          // Menu Slug
-        'snap_ai_render_page'    // Function that displays the content
-    );
-}
-add_action( 'admin_menu', 'snap_ai_setup_menu' );
+// 2. Define Plugin Constants
+define( 'SNAPAI_VERSION', '1.0.0' );
+define( 'SNAPAI_DIR', plugin_dir_path( __FILE__ ) );
+define( 'SNAPAI_URL', plugin_dir_url( __FILE__ ) );
 
 /**
- * Step 2: Render the Dashboard Page
+ * 3. Load Admin Functionality
+ * We only load the admin class if we are in the WordPress dashboard.
  */
-function snap_ai_render_page() {
-    ?>
-    <div class="wrap">
-        <h1>SnapAI Dashboard is Working!</h1>
-        <p>If you see this page, your plugin foundation is solid.</p>
-        <hr>
-        <p><strong>Next Step:</strong> We will now add the AI Image logic one file at a time.</p>
-    </div>
-    <?php
+function snap_ai_init() {
+    
+    // Check if the Admin Class file exists
+    $admin_class_path = SNAPAI_DIR . 'admin/class-snap-ai-admin.php';
+
+    if ( file_exists( $admin_class_path ) ) {
+        require_once $admin_class_path;
+
+        // Initialize the Admin Class
+        if ( class_exists( 'Snap_AI_Admin' ) ) {
+            $snapai_admin = new Snap_AI_Admin( 'snap-ai', SNAPAI_VERSION );
+
+            // Hook: Add Menu
+            add_action( 'admin_menu', array( $snapai_admin, 'add_plugin_admin_menu' ) );
+
+            // Hook: Load CSS/JS for Admin
+            add_action( 'admin_enqueue_scripts', array( $snapai_admin, 'enqueue_styles' ) );
+            add_action( 'admin_enqueue_scripts', array( $snapai_admin, 'enqueue_scripts' ) );
+        }
+    }
 }
+
+// Run the initialization on plugins_loaded hook
+add_action( 'plugins_loaded', 'snap_ai_init' );
+
+/**
+ * 4. Activation Hook
+ */
+function snap_ai_activate() {
+    // Clear rewrite rules or set default options if needed
+    flush_rewrite_rules();
+}
+register_activation_hook( __FILE__, 'snap_ai_activate' );
+
+/**
+ * 5. Deactivation Hook
+ */
+function snap_ai_deactivate() {
+    flush_rewrite_rules();
+}
+register_deactivation_hook( __FILE__, 'snap_ai_deactivate' );
